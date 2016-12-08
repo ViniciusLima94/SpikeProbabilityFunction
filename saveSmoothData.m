@@ -1,5 +1,6 @@
 % Routine to create smooth_signal of N set of data
 clear all
+close all
 clc
 
 load_from = 'dat_file'; % Or mat_file
@@ -45,11 +46,11 @@ if strcmp(load_from, 'mat_file')
     
     % If you wish to plot the data matrix uncomment
     
-%     figure()
-%     plot(t,data_matrix,'b'); hold on;
-%     hold on
-%     xlabel('s')
-%     ylabel('mV')
+    %     figure()
+    %     plot(t,data_matrix,'b'); hold on;
+    %     hold on
+    %     xlabel('s')
+    %     ylabel('mV')
     
 elseif strcmp(load_from, 'dat_file')
     data_matrix = load('dataMatrix.dat'); data_matrix = data_matrix';
@@ -77,7 +78,6 @@ for j = 1:c
 end
 
 %%
-close all
 
 data_matrix2 = {};
 for j = 1:c
@@ -95,14 +95,20 @@ for j = 1:c
             if P(aux2) < -30
                 thr_values(end+1) = P(aux2);
                 data_matrix2{end+1} = P(P <= P(aux2));
-                figure(1);
-                plot(P)
-                hold on
-                plot(aux2, P(aux2),'O')
-            end            
+                if j == 110
+                    figure(1);
+                    plot(P,'black');
+                    hold on;
+                    plot(aux2, P(aux2),'Ored');
+                end
+            end
         end
     end
 end
+ylabel('Membrane Potencial [mV]')
+legend('Action Potential','Threshold values')
+% axis([25 45 0 -20])
+% print('potencial_thr_values','-dpng','-r600')
 %%
 bl = 1;           % Length of the bins
 v_m = [];           % Potencial value of the center of each bar.
@@ -121,12 +127,50 @@ for v = -70:bl:1
     bins_pot(end+1) = aux;
     bins_potdisp(end+1) = sum( (thr_values >= v & thr_values < v+bl) );
 end
-
+[zeros, index] = find(bins_pot > 0);
+bins_pot = bins_pot(index);
+bins_potdisp = bins_potdisp(index);
+v_m = v_m(index);
 phi_v = bins_potdisp ./ bins_pot;
-
 figure
 plot(v_m,phi_v);
 ylabel('Probability')
 xlabel('Membrane Potencial [mV]')
 % print('graf_prob_disp','-dpng','-r600')
+%% Histograms
+
+subplot(2,2,1)
+bar(v_m, bins_pot)
+title('Vm')
+ylabel('Counts')
+xlabel('Membrane Potencial [mV]')
+subplot(2,2,2)
+normplot(bins_pot)
+
+subplot(2,2,3)
+bar(v_m, bins_potdisp)
+title('Threshold Vm')
+
+ylabel('Counts')
+xlabel('Membrane Potencial [mV]')
+
+subplot(2,2,4)
+normplot(bins_potdisp)
+print('hist','-dpng','-r600')
+%% Fits phi_v
+%
+% idx = find(v_m <= -40);
+% idx2 = find(v_m > -40);
+%
+% bseline = mean(phi_v(idx));
+% sbseline = std(phi_v(idx));
+% f = fit((v_m(idx2)+max(abs(v_m(idx2))))', (phi_v(idx2)-bseline+0.0115)','exp1');
+% phi_v_fit = [];
+% for v = -50:.01:-30
+%     if v <= -40
+%         phi_v_fit(end+1) = bseline + (2*sbseline.*rand()-sbseline);
+%     else
+%         phi_v_fit(end+1) = f.a*exp(f.b *(v + 40));
+%     end
+% end
 
