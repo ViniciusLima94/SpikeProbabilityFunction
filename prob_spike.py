@@ -3,6 +3,7 @@
 import pandas as pd
 from numpy import *
 import peakutils
+from operator import truediv
 from matplotlib.pyplot import *
 
 # Receives signal and threshold
@@ -45,6 +46,8 @@ for i in range(0,r):
 	Npeaks.append(np)
 	index.append(idx)
 
+data_matrix2 = []
+
 # Finding thresholds
 for i in range(0,r):
 	if index[i][:] != []:
@@ -58,40 +61,37 @@ for i in range(0,r):
 			# Method VII
 			Kp = P2 * (1 + P1**2)**1.5
 			aux = argmax(Kp)
-			thr_values.append(P[aux])
+			if P[aux] < -30:
+				thr_values.append(P[aux])
+				data_matrix2.append( P[P <= P[aux]] )
 
-# Saving all potencial values in a vector
-v = []
-for i in range(0,r):
-	for j in range(0,c):
-		v.append(data_matrix[i][j])
+bl  = 1.0            # Length of bins
+v_m = []             # Potencial value in center of each bar
+bins_pot = []        # Distribution of potential values
+bins_potdisp = []    # Distribution of threshold values
 
-nbins = 50
-counts, center = histogram(v,nbins)
-# Bin Length
-bin = diff(center)
-bin = bin[0]
-# Creating threshold potential values
-counts_1 = []
-for i in range(0, len(center)):
-	aux = 0
-	for j in range(0, len(thr_values)):
-		if thr_values[j] >= center[i]-bin/2 and thr_values[j] < center[i]+bin/2:
-			aux += 1
-	counts_1.append( aux )
-counts_1 = counts_1[:-1]
-# Probability density
-gamma = 1 / sum(map(float,counts_1)/counts) 
-ro = map(float,counts_1)/counts
-ro = gamma * ro
-# phi_v
-phi_v = cumsum(ro)
-plot(center[:-1],phi_v)
+for v in arange(-70,1,bl):
+	v_m.append( v + bl/2 )
+	bins_pot.append( 0 )
+	bins_potdisp.append( 0 )
+	for i in range(0, len(data_matrix2)):
+		for j in range(0, len(data_matrix2[i])):
+			if data_matrix2[i][j] >= v and data_matrix2[i][j] < v+bl:
+				bins_pot[-1] += 1
+	for i in range(0, len(thr_values)):
+		if thr_values[i] >= v and thr_values[i] < v+bl:
+			bins_potdisp[-1] += 1
+
+v_c = []
+phi_v = []
+
+for i in range(0, len(bins_pot)):
+	if bins_pot[i] != 0:
+		phi_v.append( float(bins_potdisp[i]) /  float(bins_pot[i]))
+		v_c.append(v_m[i])
+
+plot(v_c,phi_v)
 ylabel('Probability')
-xlabel('Membrane Potential [mV]')
-title('Spike probability')
+xlabel('Membrane Potencial [mV]')
+savefig('phi_v.png', dpi=600)
 show()
-#savefig('prob_disp2.png', dpi=600)
-
-
-
