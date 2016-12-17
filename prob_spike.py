@@ -51,7 +51,7 @@ thr_values = []
 # Finding peaks for each signal
 for i in range(0,r):
 	# For each experiment, find peaks and its indexes
-	np,idx = findNpeaks(data_matrix[i][:], -10)
+	np,idx = findNpeaks(data_matrix[i][:], -10.09)
 	# Append those values to its respective lists
 	Npeaks.append(np)
 	index.append(idx)
