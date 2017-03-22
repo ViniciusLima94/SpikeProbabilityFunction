@@ -3,6 +3,7 @@ clear all
 close all
 clc
 
+tic
 
 data_matrix = load('m_pot.dat');
 
@@ -49,24 +50,24 @@ for i = 1:Npeaks-1
     Kp = P2.*(1+(P1(1:end-1).^2)).^(-3/2);
     % Find the max Kp and its index
     [max_h, aux2] = max(Kp);
-    thr_values(end+1) = P(aux2);
+    thr_values(i) = P(aux2);
     aux = data_matrix(index(i)-60:index(i+1)-59);
-    aux( aux > thr_values(end) ) = NaN;
+    aux( aux > thr_values(i) ) = NaN;
     data_matrix2 = [data_matrix2 ; aux];
     %Plot the separated peaks, with the found threshold
-    if mod(count, 1000) == 0
-        figure(1);
-        plot(t,data_matrix(index(i)-60:index(i)+40),'black');
-        hold on;
-        plot(t(60-60+aux2), P(aux2),'Ored');
-    end
-    count = count + 1;
+%     if mod(count, 1000) == 0
+%         figure(1);
+%         plot(t,data_matrix(index(i)-60:index(i)+40),'black');
+%         hold on;
+%         plot(t(60-60+aux2), P(aux2),'Ored');
+%     end
+%     count = count + 1;
 end
 
-ylabel('Membrane Potencial [mV]')
-legend('Action Potential','Threshold values')
-% axis([5 10 -80 60])
-% axis([25 45 0 -20])
+% ylabel('Membrane Potencial [mV]')
+% legend('Action Potential','Threshold values')
+% % axis([5 10 -80 60])
+% % axis([25 45 0 -20])
 % print('potencial_thr_values','-dpng','-r600')
 
 %%
@@ -79,18 +80,18 @@ v_m = -80:bl:1;
 phi_v = n2 ./ n1;
 figure
 plot(v_m,phi_v);
+axis([-50 -44.6 0 1.1])
 ylabel('Probability')
 xlabel('Membrane Potencial [mV]')
 % print('graf_prob_disp','-dpng','-r600')
 
 %%
 figure
-plot(x1,n1,'Color',[0.2 0.2 0.5])
-box off
-a2 = axes('YAxisLocation', 'Right');
-set(a2, 'color', 'none')
-set(a2, 'XTick', [])
-set(a2, 'YLim', [0 max(n2+200)])
-hold on
-plot(x2,n2,'Color',[0 0.7 0.7])
+plotyy(x1,n1,x2,n2)
+ylabel('Counts')
+xlabel('Membrane Potential [mV]');
+legend('V_{m}', 'V_{th}');
+
 % print('hist_prob_disp','-dpng','-r600')
+
+toc
